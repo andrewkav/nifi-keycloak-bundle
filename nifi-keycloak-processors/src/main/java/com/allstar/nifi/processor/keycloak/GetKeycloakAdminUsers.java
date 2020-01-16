@@ -60,7 +60,6 @@ public class GetKeycloakAdminUsers extends AbstractProcessor {
     final static PropertyDescriptor PASSWORD = new PropertyDescriptor.Builder()
             .name("Admin password")
             .addValidator(StandardValidators.NON_EMPTY_VALIDATOR)
-            .expressionLanguageSupported(ExpressionLanguageScope.VARIABLE_REGISTRY)
             .sensitive(true)
             .required(true)
             .build();
@@ -158,7 +157,7 @@ public class GetKeycloakAdminUsers extends AbstractProcessor {
 
         final String baseUrl = context.getProperty(URL).evaluateAttributeExpressions().getValue();
         final String user = context.getProperty(USER).evaluateAttributeExpressions().getValue();
-        final String password = context.getProperty(PASSWORD).evaluateAttributeExpressions().getValue();
+        final String password = context.getProperty(PASSWORD).getValue();
         final String realm = context.getProperty(REALM).evaluateAttributeExpressions().getValue();
         final int pageSize = context.getProperty(PAGE_SIZE).asInteger();
 
@@ -178,6 +177,10 @@ public class GetKeycloakAdminUsers extends AbstractProcessor {
         } catch (IOException e) {
             getLogger().error("unable to get token", e);
             throw new RuntimeException(e);
+        }
+
+        if (tokenResp.accessToken == null) {
+            throw new RuntimeException("Keycloak admin token must not be null.");
         }
 
         boolean hasMore = true;
